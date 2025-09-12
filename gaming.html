@@ -1,0 +1,271 @@
+<!doctype html>
+
+<!--
+  amikweb - Simple single-file gaming website template
+  - Responsive grid of game cards
+  - Search, category filter, quick preview modal
+  - Easy to customize: replace game data in the JS array
+--><html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Amikweb — All Games Hub</title>
+  <meta name="description" content="amikweb — Play, discover and browse games. A clean demo template." />
+  <style>
+    :root{
+      --bg:#0b1020; --card:#0f1724; --accent:#6ee7b7; --muted:#9aa6bb; --glass: rgba(255,255,255,0.03);
+      --radius:14px; --max-width:1200px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,#070814 0%, #081229 60%); color:#e6eef7; -webkit-font-smoothing:antialiased;
+      display:flex; align-items:flex-start; justify-content:center; padding:36px 16px;
+    }.site{width:100%; max-width:var(--max-width)}
+
+header{
+  display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:24px;
+}
+.brand{display:flex; gap:12px; align-items:center}
+.logo{
+  width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--accent),#60a5fa); display:grid; place-items:center; font-weight:700;
+  box-shadow:0 6px 18px rgba(0,0,0,0.6); color:#082023;
+}
+.brand h1{margin:0; font-size:20px}
+.brand p{margin:0; font-size:12px; color:var(--muted)}
+
+.controls{display:flex; gap:12px; align-items:center}
+.search{background:var(--glass); border-radius:12px; padding:8px 12px; display:flex; gap:8px; align-items:center; min-width:220px}
+.search input{background:transparent; border:0; outline:0; color:inherit; width:180px}
+.select{background:var(--card); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); color:var(--muted)}
+
+.hero{
+  display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:20px; padding:18px; border-radius:16px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+.hero .left{max-width:64%}
+.hero h2{margin:0 0 6px 0}
+.hero p{margin:0; color:var(--muted)}
+.cta{background:var(--accent); color:#05201a; padding:10px 14px; border-radius:10px; font-weight:700; border:0; cursor:pointer}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); border-radius:14px; padding:12px; border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 6px 20px rgba(2,6,23,0.6);
+}
+.thumb{height:120px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f1724,#07102a); margin-bottom:10px}
+.thumb svg{opacity:0.85}
+.meta{display:flex; align-items:center; justify-content:space-between}
+.meta h3{margin:0; font-size:16px}
+.meta p{margin:0; font-size:12px; color:var(--muted)}
+.tags{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+.tag{font-size:11px; padding:6px 8px; background:rgba(255,255,255,0.02); border-radius:999px; color:var(--muted)}
+.play{margin-top:12px; width:100%; padding:8px 10px; border-radius:10px; border:0; cursor:pointer; background:transparent; color:var(--accent); font-weight:700}
+
+footer{margin-top:26px; text-align:center; color:var(--muted); font-size:13px}
+
+/* Modal */
+.modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(3,6,12,0.6); z-index:50}
+.modal.open{display:grid}
+.modal-card{width:min(880px,92%); background:var(--card); padding:18px; border-radius:16px; border:1px solid rgba(255,255,255,0.03)}
+.modal-row{display:flex; gap:18px}
+.modal-thumb{flex:0 0 320px; height:180px; border-radius:12px; overflow:hidden; display:grid; place-items:center; background:linear-gradient(135deg,#021022,#0b1a2d)}
+.modal-info h3{margin:0 0 8px 0}
+.close{background:transparent; border:0; color:var(--muted); font-weight:700; cursor:pointer}
+
+@media (max-width:700px){
+  .hero{flex-direction:column; align-items:flex-start}
+  .hero .left{max-width:100%}
+  .modal-row{flex-direction:column}
+  .modal-thumb{width:100%}
+}
+
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header>
+      <div class="brand">
+        <div class="logo">AW</div>
+        <div>
+          <h1>amikweb</h1>
+          <p>All games. One place.</p>
+        </div>
+      </div><div class="controls">
+    <div class="search" title="Search games">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+      <input id="search" placeholder="Search games, e.g. racing, fps..." />
+    </div>
+    <select id="category" class="select">
+      <option value="all">All Genres</option>
+      <option value="racing">Racing</option>
+      <option value="strategy">Strategy</option>
+      <option value="action">Action</option>
+      <option value="puzzle">Puzzle</option>
+      <option value="sports">Sports</option>
+    </select>
+    <button class="cta" id="showAll">Reset</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="left">
+    <h2>Play, discover & bookmark your next favorite game</h2>
+    <p>Fast browsing, responsive cards, and an easy-to-edit game list — perfect for a small gaming portal or personal collection.</p>
+  </div>
+  <div>
+    <button class="cta" id="randomPlay">Surprise me</button>
+  </div>
+</section>
+
+<main>
+  <div id="grid" class="grid" aria-live="polite">
+    <!-- Game cards inserted by JS -->
+  </div>
+</main>
+
+<footer>
+  © <span id="year"></span> amikweb • Built with ❤️ — Replace this demo content with your own games.
+</footer>
+
+  </div> <!-- Modal --> <div id="modal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px">
+        <strong id="modalTitle">Game Title</strong>
+        <button class="close" id="closeModal">Close ✕</button>
+      </div>
+      <div class="modal-row">
+        <div class="modal-thumb" id="modalThumb" aria-hidden="true">
+          <!-- SVG placeholder -->
+        </div>
+        <div class="modal-info">
+          <h3 id="modalGenre">Genre</h3>
+          <p id="modalDesc">Description</p>
+          <div style="margin-top:12px">
+            <button class="cta" id="playNow">Play / Launch</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <script>
+    // Sample game data: replace or extend this array with your own games
+    const games = [
+      {id:1, title:'Neon Racer', genre:'racing', desc:'High-speed futuristic racing with neon tracks and drifting.', rating:4.5},
+      {id:2, title:'Castle Tactix', genre:'strategy', desc:'Turn-based kingdom building and tactical battles.', rating:4.2},
+      {id:3, title:'Cyber Strike', genre:'action', desc:'Fast-paced cyberpunk shooter with lots of loot.', rating:4.6},
+      {id:4, title:'Puzzle Garden', genre:'puzzle', desc:'Relaxing match-3 puzzle with beautiful gardens.', rating:4.0},
+      {id:5, title:'Street Football', genre:'sports', desc:'Arcade-style 5v5 football with stylized rules.', rating:3.9},
+      {id:6, title:'Grand Drift', genre:'racing', desc:'Open-world drift racing across scenic roads.', rating:4.3},
+      {id:7, title:'Mindbender', genre:'puzzle', desc:'Logic puzzles that flex your brain in clever ways.', rating:4.4},
+      {id:8, title:'Operation Omega', genre:'action', desc:'Co-op missions and tactical objectives.', rating:4.1}
+    ];
+
+    const grid = document.getElementById('grid');
+    const searchInput = document.getElementById('search');
+    const categorySelect = document.getElementById('category');
+    const yearSpan = document.getElementById('year');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalGenre = document.getElementById('modalGenre');
+    const modalThumb = document.getElementById('modalThumb');
+    const closeModalBtn = document.getElementById('closeModal');
+    const playNowBtn = document.getElementById('playNow');
+
+    yearSpan.textContent = new Date().getFullYear();
+
+    function createThumbSVG(title){
+      // simple SVG placeholder for games
+      const initials = title.split(' ').map(s=>s[0]).slice(0,2).join('');
+      return `data:image/svg+xml;utf8,${encodeURIComponent(`
+        <svg xmlns='http://www.w3.org/2000/svg' width='600' height='360'>
+          <defs>
+            <linearGradient id='g' x1='0' x2='1'>
+              <stop offset='0' stop-color='#0ea5a4'/>
+              <stop offset='1' stop-color='#6366f1'/>
+            </linearGradient>
+          </defs>
+          <rect width='100%' height='100%' rx='18' fill='url(#g)' />
+          <text x='50%' y='50%' font-size='72' text-anchor='middle' fill='rgba(255,255,255,0.95)' font-family='system-ui, Arial' dy='.28em'>${initials}</text>
+        </svg>
+      `)}`;
+    }
+
+    function render(list){
+      grid.innerHTML = '';
+      if(!list.length){
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:40px;">No games found. Try resetting filters.</div>`;
+        return;
+      }
+      list.forEach(game=>{
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="thumb"><img src="${createThumbSVG(game.title)}" alt="${game.title} cover" style="width:100%; height:100%; object-fit:cover"/></div>
+          <div class="meta">
+            <div>
+              <h3>${game.title}</h3>
+              <p>${game.rating} ★ — ${game.genre}</p>
+            </div>
+            <div style="text-align:right">
+              <small class="tag">${game.genre}</small>
+            </div>
+          </div>
+          <div class="tags">
+            <span class="tag">${game.rating} rating</span>
+            <span class="tag">id:${game.id}</span>
+          </div>
+          <button class="play" data-id="${game.id}">Quick preview</button>
+        `;
+        grid.appendChild(card);
+      });
+
+      // attach preview handlers
+      grid.querySelectorAll('.play').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          const id = +e.currentTarget.dataset.id;
+          openModal(id);
+        });
+      });
+    }
+
+    function openModal(id){
+      const g = games.find(x=>x.id===id);
+      if(!g) return;
+      modalTitle.textContent = g.title;
+      modalDesc.textContent = g.desc;
+      modalGenre.textContent = g.genre.charAt(0).toUpperCase()+g.genre.slice(1);
+      modalThumb.innerHTML = `<img src='${createThumbSVG(g.title)}' alt='' style='width:100%; height:100%; object-fit:cover' />`;
+      modal.classList.add('open');
+      playNowBtn.onclick = ()=>{ alert('This is a demo — link your launcher or embed here.\nLaunching: ' + g.title); };
+    }
+
+    function closeModal(){ modal.classList.remove('open'); }
+
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+
+    function filterGames(){
+      const q = searchInput.value.trim().toLowerCase();
+      const cat = categorySelect.value;
+      let res = games.filter(g=>{
+        const matchesQ = q === '' || g.title.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q) || g.genre.toLowerCase().includes(q);
+        const matchesCat = cat === 'all' || g.genre === cat;
+        return matchesQ && matchesCat;
+      });
+      render(res);
+    }
+
+    searchInput.addEventListener('input', filterGames);
+    categorySelect.addEventListener('change', filterGames);
+
+    document.getElementById('showAll').addEventListener('click', ()=>{ searchInput.value=''; categorySelect.value='all'; filterGames(); });
+    document.getElementById('randomPlay').addEventListener('click', ()=>{
+      const idx = Math.floor(Math.random()*games.length);
+      openModal(games[idx].id);
+    });
+
+    // initial render
+    render(games);
+  </script></body>
+</html>
